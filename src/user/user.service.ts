@@ -3,7 +3,6 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { Prisma } from 'generated/prisma/client';
@@ -11,19 +10,6 @@ import { Prisma } from 'generated/prisma/client';
 @Injectable()
 export class UserService {
   constructor(private readonly prisma: PrismaService) {}
-
-  async create(dto: CreateUserDto) {
-    try {
-      return await this.prisma.user.create({ data: dto });
-    } catch (e) {
-      if (
-        e instanceof Prisma.PrismaClientKnownRequestError &&
-        e.code === 'P2002'
-      )
-        throw new ConflictException('User with this email already exists');
-      throw e;
-    }
-  }
 
   async findAll() {
     return this.prisma.user.findMany({ omit: { password: true } });

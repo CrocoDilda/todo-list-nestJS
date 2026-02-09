@@ -12,7 +12,7 @@ import {
 } from 'class-validator';
 import { UserGender } from 'generated/prisma/enums';
 
-export class CreateUserDto {
+export class ProfileUserDto {
   @ApiProperty({
     description: 'User name',
     example: 'Alex',
