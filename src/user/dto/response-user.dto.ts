@@ -1,7 +1,10 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { OmitType, PartialType } from '@nestjs/swagger';
 import { ProfileUserDto } from './profile-user.dto';
 
-export class ResponseUserDto extends ProfileUserDto {
+export class ResponseUserDto extends PartialType(
+  OmitType(ProfileUserDto, ['password'] as const),
+) {
   @ApiProperty({
     description: 'User id',
     example: '367df3b0-be57-4d49-b5ec-56ab2826d862',

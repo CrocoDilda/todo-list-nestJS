@@ -1,29 +1,32 @@
-import { Controller, Post, Body, Res } from '@nestjs/common';
+import { Controller, Post, Body, Res, Req, Get } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { RegisterAuthDto } from './dto/create-auth.dto';
-import { ResponseUserDto } from 'src/user/dto/response-user.dto';
 import {
   ApiBadRequestResponse,
   ApiConflictResponse,
   ApiCreatedResponse,
+  ApiNotFoundResponse,
   ApiOkResponse,
   ApiOperation,
+  ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
 import { ResponseAuthCreate, TokenAuthDto } from './dto/response-auth.dto';
 import { LoginAuthDto } from './dto/login-auth.dto';
-import type { Response } from 'express';
+import type { Request, Response } from 'express';
+import { Protected } from '../decorators/protected.decorator';
+import { GetUser } from 'src/decorators/get-user.decorator';
+import type { User } from 'generated/prisma/client';
 
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @ApiOperation({
-    summary: 'Create a new user',
-    description:
-      'Creates a new user with provided data. All fields are required.',
+    summary: 'Register new user',
+    description: 'Creates a new user account with provided credentials',
   })
   @ApiCreatedResponse({
-    description: 'User successfully created',
+    description: 'User successfully registered',
     type: ResponseAuthCreate,
   })
   @ApiBadRequestResponse({ description: 'Validation error' })
@@ -37,15 +40,51 @@ export class AuthController {
   }
 
   @ApiOperation({
-    summary: 'Create a new user',
-    description:
-      'Creates a new user with provided data. All fields are required.',
+    summary: 'User login',
+    description: 'Authenticate user with email and password',
   })
-  @ApiOkResponse({ description: 'User is found', type: TokenAuthDto })
-  @ApiBadRequestResponse({ description: 'User not found' })
-  @ApiConflictResponse({ description: 'User not found' })
+  @ApiOkResponse({
+    description: 'User successfully authenticated',
+    type: TokenAuthDto,
+  })
+  @ApiBadRequestResponse({ description: 'Validation error' })
+  @ApiUnauthorizedResponse({ description: 'Invalid credentials' })
+  @ApiNotFoundResponse({ description: 'User with provided email not found' })
   @Post('/login')
   login(@Res({ passthrough: true }) res: Response, @Body() dto: LoginAuthDto) {
     return this.authService.login(res, dto);
+  }
+
+  @Protected()
+  @ApiOperation({
+    summary: 'Refresh access token',
+    description: 'Get new access token using refresh token from cookies',
+  })
+  @ApiOkResponse({
+    description: 'Access token successfully refreshed',
+    type: TokenAuthDto,
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Refresh token is missing, expired or invalid',
+  })
+  @ApiNotFoundResponse({ description: 'User from token not found in database' })
+  @Get('/refresh')
+  refresh(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
+    return this.authService.refresh(req, res);
+  }
+
+  @Protected()
+  @ApiOperation({
+    summary: 'User logout',
+    description: 'Clear refresh token cookie and logout user',
+  })
+  @ApiOkResponse({
+    description: 'User successfully logged out',
+    schema: { example: true },
+  })
+  @ApiUnauthorizedResponse({ description: 'User is not authenticated' })
+  @Get('/logout')
+  logout(@Res({ passthrough: true }) res: Response) {
+    return this.authService.logout(res);
   }
 }
