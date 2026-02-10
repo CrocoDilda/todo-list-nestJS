@@ -8,14 +8,13 @@ import {
   ApiNotFoundResponse,
   ApiOkResponse,
   ApiOperation,
+  ApiProperty,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
-import { ResponseAuthCreate, TokenAuthDto } from './dto/response-auth.dto';
+import { RegisterAuthDocs, TokenAuthDocs } from './docs/response-auth.dto';
 import { LoginAuthDto } from './dto/login-auth.dto';
 import type { Request, Response } from 'express';
 import { Protected } from '../decorators/protected.decorator';
-import { GetUser } from 'src/decorators/get-user.decorator';
-import type { User } from 'generated/prisma/client';
 
 @Controller('auth')
 export class AuthController {
@@ -27,7 +26,7 @@ export class AuthController {
   })
   @ApiCreatedResponse({
     description: 'User successfully registered',
-    type: ResponseAuthCreate,
+    type: RegisterAuthDocs,
   })
   @ApiBadRequestResponse({ description: 'Validation error' })
   @ApiConflictResponse({ description: 'User with this email already exists' })
@@ -45,7 +44,7 @@ export class AuthController {
   })
   @ApiOkResponse({
     description: 'User successfully authenticated',
-    type: TokenAuthDto,
+    type: TokenAuthDocs,
   })
   @ApiBadRequestResponse({ description: 'Validation error' })
   @ApiUnauthorizedResponse({ description: 'Invalid credentials' })
@@ -62,7 +61,7 @@ export class AuthController {
   })
   @ApiOkResponse({
     description: 'Access token successfully refreshed',
-    type: TokenAuthDto,
+    type: TokenAuthDocs,
   })
   @ApiUnauthorizedResponse({
     description: 'Refresh token is missing, expired or invalid',

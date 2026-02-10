@@ -1,40 +1,54 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
-  provider = "prisma-client"
-  output   = "../generated/prisma"
-  // для NestJS в ESM окружении часто помогает:
-  moduleFormat = "cjs"  // если ваш рантайм всё же ожидает CJS
+    provider     = "prisma-client"
+    output       = "../generated/prisma"
+    moduleFormat = "cjs"
 }
 
 datasource db {
-  provider = "postgresql"
+    provider = "postgresql"
 }
 
 enum UserGender {
-	male
-	female
+    male
+    female
 }
 
 model User {
-	id String @id @default(uuid())
+    id String @id @default(uuid())
 
-	name String
-	lastName String @map("last_name")
+    name     String
+    lastName String @map("last_name")
 
-	email String @unique()
-	password String
+    email    String @unique()
+    password String
 
-	age Int
+    age Int
 
-	gender UserGender
+    gender UserGender
 
-	createdAt DateTime @default(now()) @map("created_at")
-	updatedAt DateTime @updatedAt @map("updated_at")
+    createdAt DateTime @default(now()) @map("created_at")
+    updatedAt DateTime @updatedAt @map("updated_at")
 
-	@@map("user")
+    notes Note[] @relation("user_notes")
+
+    @@map("user")
+}
+
+model Note {
+    id     String @id @default(uuid())
+    userId String @map("user_id")
+    user   User   @relation("user_notes", fields: [userId], references: [id], onDelete: Cascade)
+
+    title String
+    text  String
+    tags  String[]
+
+    isComplete Boolean @default(false) @map("is_complete")
+    isOverdue  Boolean @default(false) @map("is_overdue")
+
+    dueDate   DateTime? @map("due_date")
+    createdAt DateTime  @default(now()) @map("created_at")
+    updatedAt DateTime  @updatedAt @map("updated_at")
+
+    @@map("note")
 }
